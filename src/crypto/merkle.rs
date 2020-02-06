@@ -1,17 +1,83 @@
 use super::hash::{Hashable, H256};
+use std::ptr;
+use std::borrow::{Borrow, BorrowMut};
+
+#[derive(Debug, Clone)]
+pub struct MerkleNode{
+    key: H256,
+    left_child: *const MerkleNode,
+    right_child: *const MerkleNode,
+}
+
+/*
+impl Default for *const MerkleNode {
+    fn default() -> Self{
+        return ptr::null();
+    }
+}
+*/
 
 /// A Merkle tree.
-#[derive(Debug, Default)]
+#[derive(Debug, Clone)]
 pub struct MerkleTree {
+    root: *const MerkleNode,
+}
+
+fn build(leaves: Vec<MerkleNode>, leaf_size: usize) -> MerkleNode {
+    let mut n = leaf_size;
+    if n == 1 {
+        let root = leaves[0].clone();
+        return root;
+    }
+    let mut new_leaves = leaves.clone();
+    if n % 2 == 1 {
+        let elem = new_leaves[n - 1].clone();
+        new_leaves.push(elem);
+        n += 1;
+    }
+    n = n / 2;
+    for i in 0..n {
+        let mut elem1: MerkleNode = new_leaves[2 * i].clone();
+        let mut elem2: MerkleNode = new_leaves[2 * (i + 1)].clone();
+        let hash1 = (elem1.key).as_ref();
+        let hash2 = (elem2.key).as_ref();
+        let concat = H256::from([hash1, hash2].concat());
+        let concat_hash= H256::hash(concat);
+        let mut par: MerkleNode = MerkleNode {
+            key: concat_hash,
+            left_child: &elem1,
+            right_child: &elem2,
+        };
+        new_leaves[i] = par;
+    }
+    let root = build(new_leaves, n);
+    return root;
 }
 
 impl MerkleTree {
     pub fn new<T>(data: &[T]) -> Self where T: Hashable, {
-        unimplemented!()
+        let mut Tree: MerkleTree = MerkleTree {
+            root: ptr::null(),
+        };
+        let leaf_size = data.len();
+        let mut leaves: Vec<MerkleNode> = Vec::new();
+        for i in 0..leaf_size {
+            let dt = data[i].clone();
+            let hashed = H256::hash(dt);
+            let mut elem: MerkleNode = MerkleNode {
+                key: hashed,
+                left_child: ptr::null(),
+                right_child: ptr::null(),
+            };
+            leaves.push(elem);
+        }
+        let root = build(leaves, leaf_size);
+        Tree.root = &root;
+        return Tree;
     }
 
     pub fn root(&self) -> H256 {
-        unimplemented!()
+        return self.root.key;
     }
 
     /// Returns the Merkle Proof of data at index i
