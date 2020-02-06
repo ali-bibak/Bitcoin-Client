@@ -2,7 +2,7 @@ use super::hash::{Hashable, H256};
 use std::ptr;
 use std::borrow::{Borrow, BorrowMut};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct MerkleNode{
     key: H256,
     left_child: *const MerkleNode,
@@ -18,11 +18,11 @@ impl Default for *const MerkleNode {
 */
 
 /// A Merkle tree.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct MerkleTree {
     root: *const MerkleNode,
 }
-
+/*
 fn build(leaves: Vec<MerkleNode>, leaf_size: usize) -> MerkleNode {
     let mut n = leaf_size;
     if n == 1 {
@@ -53,31 +53,14 @@ fn build(leaves: Vec<MerkleNode>, leaf_size: usize) -> MerkleNode {
     let root = build(new_leaves, n);
     return root;
 }
-
+*/
 impl MerkleTree {
     pub fn new<T>(data: &[T]) -> Self where T: Hashable, {
-        let mut Tree: MerkleTree = MerkleTree {
-            root: ptr::null(),
-        };
-        let leaf_size = data.len();
-        let mut leaves: Vec<MerkleNode> = Vec::new();
-        for i in 0..leaf_size {
-            let dt = data[i].clone();
-            let hashed = H256::hash(dt);
-            let mut elem: MerkleNode = MerkleNode {
-                key: hashed,
-                left_child: ptr::null(),
-                right_child: ptr::null(),
-            };
-            leaves.push(elem);
-        }
-        let root = build(leaves, leaf_size);
-        Tree.root = &root;
-        return Tree;
+        unimplemented!()
     }
 
     pub fn root(&self) -> H256 {
-        return self.root.key;
+        unimplemented!()
     }
 
     /// Returns the Merkle Proof of data at index i
