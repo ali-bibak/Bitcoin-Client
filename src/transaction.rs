@@ -3,6 +3,7 @@ extern crate untrusted;
 use serde::{Serialize, Deserialize};
 use ring::signature::{Ed25519KeyPair, Signature, KeyPair, VerificationAlgorithm, EdDSAParameters};
 use ring::digest::{SHA256, digest};
+use crate::crypto::hash::{H256, Hashable};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct MySignature {
@@ -33,6 +34,15 @@ impl Transaction {
             Some(_) => true,
             None => false,
         };
+    }
+}
+
+impl Hashable for Transaction {
+    fn hash(&self) -> H256 {
+        let serialized = bincode::serialize(&self).unwrap();
+        let hashed = digest(&SHA256, &serialized);
+        let hashed256 = H256::from(hashed);
+        return hashed256;
     }
 }
 
