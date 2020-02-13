@@ -48,7 +48,6 @@ impl Blockchain {
     pub fn insert(&mut self, block: &Block) {
         let bl: Block = block.clone();
         let parent_hash = bl.get_parent();
-        //let parent: Block = self.ledger.get(&parent_hash).unwrap().clone();
         let parent_height: u32 = self.heights.get(&parent_hash).unwrap().clone();
         let hashed = bl.hash();
         let h = parent_height + 1;
@@ -64,7 +63,7 @@ impl Blockchain {
         return self.tip_hash;
     }
 
-    /// Get the last block's hash of the longest chain
+    /// Get the hash of all blocks in the longest chain
     #[cfg(any(test, test_utilities))]
     pub fn all_blocks_in_longest_chain(&self) -> Vec<H256> {
         let mut current: H256 = self.tip();

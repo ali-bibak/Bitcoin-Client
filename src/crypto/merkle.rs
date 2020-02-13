@@ -1,7 +1,8 @@
-use super::hash::{Hashable, H256};
 use ring::digest::{digest, SHA256};
 use std::borrow::Borrow;
 use serde::{Serialize, Deserialize};
+
+use super::hash::{Hashable, H256};
 
 /// A node in the Merkle tree
 #[derive(Debug, Clone, Serialize, Deserialize)]

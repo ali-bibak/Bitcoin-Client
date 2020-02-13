@@ -3,13 +3,10 @@ extern crate untrusted;
 use serde::{Serialize, Deserialize};
 use ring::signature::{Ed25519KeyPair, Signature, KeyPair, VerificationAlgorithm, EdDSAParameters};
 use ring::digest::{SHA256, digest};
+
 use crate::crypto::hash::{H256, Hashable};
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct MySignature {
-    value: Vec<u8>,
-}
-
+/// A possibly signed transaction
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Transaction {
     input: String,
@@ -53,6 +50,11 @@ impl Hashable for Transaction {
         let hashed256 = H256::from(hashed);
         return hashed256;
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct MySignature {
+    value: Vec<u8>,
 }
 
 /// Create digital signature of a transaction

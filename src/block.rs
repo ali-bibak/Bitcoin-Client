@@ -3,11 +3,13 @@ extern crate rand;
 use serde::{Serialize, Deserialize};
 use ring::digest::{SHA256, digest};
 use std::time::{SystemTime};
+use rand::Rng;
+
 use crate::crypto::hash::{H256, Hashable};
 use crate::crypto::merkle::{MerkleTree};
 use crate::transaction::{Transaction};
-use rand::Rng;
 
+/// A block in the blockchain
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Block {
     header: Header,
@@ -39,18 +41,19 @@ impl Block {
     }
 }
 
+impl Hashable for Block {
+    fn hash(&self) -> H256 {
+        return self.header.hash();
+    }
+}
+
+/// The header of a block
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Header {
     parent: H256,
     nonce: u32,
     difficulty: H256,
     timestamp: SystemTime,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Content {
-    transactions: Vec<Transaction>,
-    merkle_root: H256,
 }
 
 impl Hashable for Header {
@@ -62,10 +65,11 @@ impl Hashable for Header {
     }
 }
 
-impl Hashable for Block {
-    fn hash(&self) -> H256 {
-        return self.header.hash();
-    }
+/// The content of a block
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Content {
+    transactions: Vec<Transaction>,
+    merkle_root: H256,
 }
 
 #[cfg(any(test, test_utilities))]
