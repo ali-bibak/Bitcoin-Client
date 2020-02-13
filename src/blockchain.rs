@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use rand::Rng;
 
 use crate::block::Block;
 use crate::crypto::merkle::MerkleTree;
@@ -50,7 +49,6 @@ impl Blockchain {
 
     /// Insert a block into blockchain
     pub fn insert(&mut self, block: &Block) {
-        let mut rng = rand::thread_rng();
         let bl: Block = block.clone();
         let parent_hash = bl.get_parent();
         let parent_height: u32 = self.heights.get(&parent_hash).unwrap().clone();
@@ -58,11 +56,6 @@ impl Blockchain {
         let h = parent_height + 1;
         if h > self.heights.get(&self.tip_hash).unwrap().clone() {
             self.tip_hash = hashed;
-        } else if h == self.heights.get(&self.tip_hash).unwrap().clone() {
-            let change: bool = rng.gen();
-            if change {
-                self.tip_hash = hashed;
-            }
         }
         self.ledger.insert(hashed, bl);
         self.heights.insert(hashed, h);
