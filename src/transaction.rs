@@ -1,16 +1,39 @@
 extern crate untrusted;
 
-use serde::{Serialize,Deserialize};
+use serde::{Serialize, Deserialize};
 use ring::signature::{Ed25519KeyPair, Signature, KeyPair, VerificationAlgorithm, EdDSAParameters};
 use ring::digest::{SHA256, digest};
-use crate::crypto::hash::H256;
-use ring::error::Unspecified;
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+pub struct MySignature {
+    value: Vec<u8>,
+}
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Transaction {
     input: String,
     output: String,
-    signature: Vec<u8>,
+    signature: Option<MySignature>,
+}
+
+impl Transaction {
+    fn set_signature(&mut self, signature: &Signature) {
+        if self.is_signed() {
+            eprintln!("Ignored attempt to sign the already signed transaction");
+            return ;
+        }
+        let my_signature = MySignature {
+            value: signature.as_ref().to_vec(),
+        };
+        self.signature = Option::from(my_signature);
+    }
+
+    fn is_signed(&self) -> bool {
+        return match self.signature {
+            Some(_) => true,
+            None => false,
+        };
+    }
 }
 
 /// Create digital signature of a transaction
@@ -25,15 +48,16 @@ pub fn sign(t: &Transaction, key: &Ed25519KeyPair) -> Signature {
 pub fn verify(t: &Transaction, public_key: &<Ed25519KeyPair as KeyPair>::PublicKey, signature: &Signature) -> bool {
     let serialized = bincode::serialize(&t).unwrap();
     let hashed = digest(&SHA256, &serialized);
+
     let public_key = untrusted::Input::from(public_key.as_ref());
     let msg = untrusted::Input::from(hashed.as_ref());
     let sgn = untrusted::Input::from(signature.as_ref());
+
     let verification = VerificationAlgorithm::verify(&EdDSAParameters, public_key, msg, sgn);
-    let mut status;
-    match verification {
-        Ok(_) => {status = true},
-        Err(_) => {status = false},
-    }
+    let status= match verification {
+        Ok(_) => true,
+        Err(_) => false,
+    };
     return status;
 }
 

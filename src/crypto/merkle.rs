@@ -1,11 +1,10 @@
 use super::hash::{Hashable, H256};
 use ring::digest::{digest, SHA256};
 use std::borrow::Borrow;
-use serde::Serialize;
-use std::mem::MaybeUninit;
+use serde::{Serialize, Deserialize};
 
 /// A node in the Merkle tree
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MerkleNode{
     key: H256,
     left_child: Box<Option<MerkleNode>>,
@@ -13,7 +12,7 @@ pub struct MerkleNode{
 }
 
 /// A Merkle tree.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct MerkleTree {
     root: MerkleNode,
 }
@@ -33,15 +32,15 @@ fn build(leaves: Vec<MerkleNode>, leaf_size: usize) -> MerkleNode {
     n = n / 2;
     let mut new_leaves: Vec<MerkleNode> = Vec::new();
     for i in 0..n {
-        let mut elem1: MerkleNode = leaves[2 * i].clone();
-        let mut elem2: MerkleNode = leaves[2 * i].clone();
-        if !(flag && i==n-1) {
-            elem2 = leaves[2 * i + 1].clone();
-        }
+        let elem1: MerkleNode = leaves[2 * i].clone();
+        let elem2: MerkleNode = match flag && i == n - 1 {
+            true => leaves[2 * i].clone(),
+            false => leaves[2 * i + 1].clone(),
+        };
         let hash1 = (elem1.key).as_ref();
         let hash2 = (elem2.key).as_ref();
         let concat_hash = H256::from(digest(&SHA256, &[hash1, hash2].concat()));
-        let mut par: MerkleNode = MerkleNode {
+        let par: MerkleNode = MerkleNode {
             key: concat_hash,
             left_child: Box::new(Option::from(elem1)),
             right_child: Box::new(Option::from(elem2)),
@@ -59,7 +58,7 @@ impl MerkleTree {
         for i in 0..leaf_size {
             let dt = data[i].borrow();
             let hashed = Hashable::hash(dt);
-            let mut elem: MerkleNode = MerkleNode {
+            let elem: MerkleNode = MerkleNode {
                 key: hashed,
                 left_child: Box::new(None),
                 right_child: Box::new(None),
@@ -92,8 +91,8 @@ impl MerkleTree {
         let mut current = self.root.clone();
         let mut proof_vec: Vec<H256> = Vec::new();
         for i in 0..m {
-            let mut lc = current.left_child.unwrap();
-            let mut rc = current.right_child.unwrap();
+            let lc = current.left_child.unwrap();
+            let rc = current.right_child.unwrap();
             if binary[i] == 0 {
                 proof_vec.push(rc.key);
                 current = lc;
