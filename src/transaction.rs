@@ -5,12 +5,12 @@ use ring::signature::{Ed25519KeyPair, Signature, KeyPair, VerificationAlgorithm,
 use ring::digest::{SHA256, digest};
 use crate::crypto::hash::{H256, Hashable};
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct MySignature {
     value: Vec<u8>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Transaction {
     input: String,
     output: String,
@@ -18,6 +18,15 @@ pub struct Transaction {
 }
 
 impl Transaction {
+    pub fn new(input: String, output: String) -> Self {
+        let transaction = Transaction {
+            input,
+            output,
+            signature: Option::None,
+        };
+        return transaction;
+    }
+
     fn set_signature(&mut self, signature: &Signature) {
         if self.is_signed() {
             eprintln!("Ignored attempt to sign the already signed transaction");

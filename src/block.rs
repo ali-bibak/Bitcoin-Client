@@ -8,13 +8,38 @@ use crate::crypto::merkle::{MerkleTree};
 use crate::transaction::{Transaction};
 use rand::Rng;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Block {
     header: Header,
     content: Content,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl Block {
+    pub fn get_parent(&self) -> H256 {
+        return self.header.parent;
+    }
+
+    pub fn new(parent: H256, difficulty: H256, transactions: Vec<Transaction>, merkle_root: H256) -> Self {
+        let mut rng = rand::thread_rng();
+        let nonce: u32 = rng.gen();
+        let timestamp = SystemTime::now();
+        let block: Block = Block {
+            header: Header {
+                parent,
+                nonce,
+                difficulty,
+                timestamp,
+            },
+            content: Content {
+                transactions,
+                merkle_root,
+            },
+        };
+        return block;
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Header {
     parent: H256,
     nonce: u32,
@@ -22,7 +47,7 @@ pub struct Header {
     timestamp: SystemTime,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Content {
     transactions: Vec<Transaction>,
     merkle_root: H256,
@@ -49,9 +74,6 @@ pub mod test {
     use crate::crypto::hash::H256;
 
     pub fn generate_random_block(parent: &H256) -> Block {
-        let mut rng = rand::thread_rng();
-        let nonce: u32 = rng.gen();
-
         let mut bytes32 = [255u8;32];
         bytes32[0]=0;
         bytes32[1]=0;
@@ -62,24 +84,13 @@ pub mod test {
         bytes32[27]=41;
         let difficulty: H256 = bytes32.into();
 
-        let timestamp = SystemTime::now();
-        let header = Header {
-            parent: parent.clone(),
-            nonce,
-            difficulty,
-            timestamp,
-        };
-        let transactions: Vec<Transaction> = Vec::new();
+        let mut transactions: Vec<Transaction> = Vec::new();
+        let transaction = Transaction::new("rand in".to_string(), "rand_out".to_string());
+        transactions.push(transaction);
         let merkle_tree = MerkleTree::new(&transactions);
         let merkle_root = merkle_tree.root();
-        let content = Content {
-            transactions,
-            merkle_root,
-        };
-        let block = Block {
-            header,
-            content,
-        };
+
+        let block: Block = Block::new(parent.clone(), difficulty, transactions, merkle_root);
         return block;
     }
 }
