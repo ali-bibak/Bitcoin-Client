@@ -79,13 +79,12 @@ pub mod test {
 
     pub fn generate_random_block(parent: &H256) -> Block {
         let mut bytes32 = [255u8;32];
-        bytes32[0]=0;
-        bytes32[1]=0;
-        bytes32[4]=6;
-        bytes32[10]=13;
-        bytes32[18]=66;
-        bytes32[23]=23;
-        bytes32[27]=41;
+        bytes32[0] = 0;
+        bytes32[1] = 0;
+        bytes32[4] = 6;
+        bytes32[10] = 13;
+        bytes32[23] = 7;
+        bytes32[28] = 45;
         let difficulty: H256 = bytes32.into();
 
         let mut transactions: Vec<Transaction> = Vec::new();

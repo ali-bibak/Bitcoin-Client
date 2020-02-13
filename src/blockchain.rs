@@ -18,9 +18,12 @@ impl Blockchain {
         let parent = H256::from([0; 32]);
 
         let mut bytes32 = [255u8;32];
-        bytes32[0]=0;
-        bytes32[1]=0;
-        bytes32[17]=16;
+        bytes32[0] = 0;
+        bytes32[1] = 0;
+        bytes32[4] = 6;
+        bytes32[10] = 13;
+        bytes32[23] = 7;
+        bytes32[28] = 45;
         let difficulty: H256 = bytes32.into();
 
         let mut transactions: Vec<Transaction> = Vec::new();
