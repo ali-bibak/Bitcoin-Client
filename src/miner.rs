@@ -95,6 +95,7 @@ impl Context {
 
     fn miner_loop(&mut self) {
         // main mining loop
+        let mut num_mined = 0;
         loop {
             let bc = Arc::clone(&self.blockchain);
 
@@ -133,10 +134,12 @@ impl Context {
                 let merkle_root = merkle_tree.root();
                 block = Block::new(parent_hash.clone(), difficulty, transactions, merkle_root);
 
-                block.hash() <= difficulty
+                block.hash() > difficulty
             } {}
 
-            info!("Successfully mined block {}", block.hash());
+            num_mined += 1;
+            info!("Successfully mined block #{}: {}", num_mined, block.hash());
+
             blockchain.insert(&block);
             let mut vec: Vec<H256> = Vec::new();
             vec.push(block.hash());

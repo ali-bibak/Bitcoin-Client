@@ -54,11 +54,8 @@ impl Blockchain {
     pub fn get_difficulty() -> H256 {
         let mut bytes32 = [255u8;32];
         bytes32[0] = 0;
-        bytes32[1] = 0;
-        bytes32[4] = 6;
-        bytes32[10] = 13;
-        bytes32[23] = 7;
-        bytes32[28] = 45;
+        bytes32[19] = 7;
+        bytes32[27] = 11;
         let difficulty: H256 = bytes32.into();
         return difficulty;
     }
