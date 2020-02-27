@@ -1,27 +1,32 @@
+use crossbeam::channel;
+use log::{debug, warn};
+use std::thread;
+use std::sync::{Arc, Mutex};
+
 use super::message::Message;
 use super::peer;
 use crate::network::server::Handle as ServerHandle;
-use crossbeam::channel;
-use log::{debug, warn};
-
-use std::thread;
+use crate::blockchain::Blockchain;
 
 #[derive(Clone)]
 pub struct Context {
     msg_chan: channel::Receiver<(Vec<u8>, peer::Handle)>,
     num_worker: usize,
     server: ServerHandle,
+    blockchain: Arc<Mutex<Blockchain>>,
 }
 
 pub fn new(
     num_worker: usize,
     msg_src: channel::Receiver<(Vec<u8>, peer::Handle)>,
     server: &ServerHandle,
+    blockchain: &Arc<Mutex<Blockchain>>
 ) -> Context {
     Context {
         msg_chan: msg_src,
         num_worker,
         server: server.clone(),
+        blockchain: Arc::clone(blockchain),
     }
 }
 
@@ -49,6 +54,15 @@ impl Context {
                 }
                 Message::Pong(nonce) => {
                     debug!("Pong: {}", nonce);
+                }
+                Message::NewBlockHashes(_) => {
+                    debug!("NewBlockHashes");
+                }
+                Message::GetBlocks(_) => {
+                    debug!("GetBlocks");
+                }
+                Message::Blocks(_) => {
+                    debug!("Blocks");
                 }
             }
         }

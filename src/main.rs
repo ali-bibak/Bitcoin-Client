@@ -19,6 +19,9 @@ use std::net;
 use std::process;
 use std::thread;
 use std::time;
+use std::sync::{Arc, Mutex};
+
+use crate::blockchain::Blockchain;
 
 fn main() {
     // parse command line arguments
@@ -64,6 +67,10 @@ fn main() {
     let (server_ctx, server) = server::new(p2p_addr, msg_tx).unwrap();
     server_ctx.start().unwrap();
 
+    // create the blockchain
+    let bc = Blockchain::new();
+    let blockchain = Arc::new(Mutex::new(bc));
+
     // start the worker
     let p2p_workers = matches
         .value_of("p2p_workers")
@@ -77,12 +84,13 @@ fn main() {
         p2p_workers,
         msg_rx,
         &server,
+        &blockchain,
     );
     worker_ctx.start();
 
     // start the miner
     let (miner_ctx, miner) = miner::new(
-        &server,
+        &server, &blockchain
     );
     miner_ctx.start();
 
