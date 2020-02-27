@@ -23,7 +23,7 @@ impl Transaction {
         };
         return transaction;
     }
-
+    /*
     fn set_signature(&mut self, signature: &Signature) {
         if self.is_signed() {
             eprintln!("Ignored attempt to sign the already signed transaction");
@@ -41,6 +41,7 @@ impl Transaction {
             None => false,
         };
     }
+    */
 }
 
 impl Hashable for Transaction {
@@ -64,6 +65,7 @@ pub fn sign(t: &Transaction, key: &Ed25519KeyPair) -> Signature {
     let signature = key.sign(hashed.as_ref());
     return signature;
 }
+
 //TODO Change the verify function
 /// Verify digital signature of a transaction, using public key instead of secret key
 pub fn verify(t: &Transaction, public_key: &<Ed25519KeyPair as KeyPair>::PublicKey, signature: &Signature) -> bool {

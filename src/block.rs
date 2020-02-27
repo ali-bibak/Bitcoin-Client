@@ -6,9 +6,7 @@ use std::time::{SystemTime};
 use rand::Rng;
 
 use crate::crypto::hash::{H256, Hashable};
-use crate::crypto::merkle::{MerkleTree};
 use crate::transaction::{Transaction};
-use crate::blockchain::Blockchain;
 
 /// A block in the blockchain
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -18,10 +16,6 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn get_parent(&self) -> H256 {
-        return self.header.parent;
-    }
-
     pub fn new(parent: H256, difficulty: H256, transactions: Vec<Transaction>, merkle_root: H256) -> Self {
         let mut rng = rand::thread_rng();
         let nonce: u32 = rng.gen();
@@ -39,6 +33,14 @@ impl Block {
             },
         };
         return block;
+    }
+
+    pub fn get_parent(&self) -> H256 {
+        return self.header.parent;
+    }
+
+    pub fn get_difficulty(&self) -> H256 {
+        return self.header.difficulty;
     }
 }
 
@@ -77,6 +79,8 @@ pub struct Content {
 pub mod test {
     use super::*;
     use crate::crypto::hash::H256;
+    use crate::crypto::merkle::{MerkleTree};
+    use crate::blockchain::Blockchain;
 
     pub fn generate_random_block(parent: &H256) -> Block {
         let difficulty: H256 = Blockchain::get_difficulty().into();

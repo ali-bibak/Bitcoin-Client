@@ -6,6 +6,11 @@ use std::sync::{Arc, Mutex};
 
 use crate::network::server::Handle as ServerHandle;
 use crate::blockchain::Blockchain;
+use crate::block::Block;
+use crate::transaction::Transaction;
+use crate::crypto::merkle::MerkleTree;
+use crate::crypto::hash::{H256, Hashable};
+use crate::network::message::Message;
 
 enum ControlSignal {
     Start(u64), // the number controls the lambda of interval between block generation
@@ -91,6 +96,8 @@ impl Context {
     fn miner_loop(&mut self) {
         // main mining loop
         loop {
+            let bc = Arc::clone(&self.blockchain);
+
             // check and react to control signals
             match self.operating_state {
                 OperatingState::Paused => {
@@ -113,7 +120,27 @@ impl Context {
                 return;
             }
 
-            // TODO: actual mining
+            let mut block: Block;
+            let mut blockchain = (*bc).lock().unwrap();
+            while {
+                let parent_hash = blockchain.tip();
+                let parent = blockchain.get(&parent_hash);
+                let difficulty = parent.get_difficulty();
+                let mut transactions: Vec<Transaction> = Vec::new();
+                let transaction = Transaction::new("new block input!".to_string(), "new block output!".to_string());
+                transactions.push(transaction);
+                let merkle_tree = MerkleTree::new(&transactions);
+                let merkle_root = merkle_tree.root();
+                block = Block::new(parent_hash.clone(), difficulty, transactions, merkle_root);
+
+                block.hash() <= difficulty
+            } {}
+
+            info!("Successfully mined block {}", block.hash());
+            blockchain.insert(&block);
+            let mut vec: Vec<H256> = Vec::new();
+            vec.push(block.hash());
+            self.server.broadcast(Message::NewBlockHashes(vec));
 
             if let OperatingState::Run(i) = self.operating_state {
                 if i != 0 {

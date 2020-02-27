@@ -9,6 +9,7 @@ use crate::network::server::Handle as ServerHandle;
 use crate::blockchain::Blockchain;
 use crate::block::Block;
 use crate::crypto::hash::H256;
+use log::error;
 
 #[derive(Clone)]
 pub struct Context {
@@ -67,7 +68,7 @@ impl Context {
                             vec.push(block_hash.clone());
                         }
                     }
-                    debug!("* Ask for blocks: {:?}", vec);
+                    debug!("Asking for blocks: {:?}", vec);
                     peer.write(Message::GetBlocks(vec));
                 }
                 Message::GetBlocks(block_hashes) => {
@@ -76,12 +77,12 @@ impl Context {
                     let mut vec: Vec<Block> = Vec::new();
                     for block_hash in &block_hashes {
                        if !blockchain.find(&block_hash) {
-                           debug!("ERROR: No such block found: {:?}", block_hash);
+                           error!("Error finding the block {:?}", block_hash);
                        } else {
                            vec.push(blockchain.get(&block_hash));
                        }
                     }
-                    debug!("* Sending the blocks: {:?}", vec);
+                    debug!("Sending the blocks: {:?}", vec);
                     peer.write(Message::Blocks(vec));
                 }
                 Message::Blocks(blocks) => {
