@@ -16,14 +16,7 @@ impl Blockchain {
     pub fn new() -> Self {
         let parent = H256::from([0; 32]);
 
-        let mut bytes32 = [255u8;32];
-        bytes32[0] = 0;
-        bytes32[1] = 0;
-        bytes32[4] = 6;
-        bytes32[10] = 13;
-        bytes32[23] = 7;
-        bytes32[28] = 45;
-        let difficulty: H256 = bytes32.into();
+        let difficulty: H256 = Blockchain::get_difficulty().into();
 
         let mut transactions: Vec<Transaction> = Vec::new();
         let transaction = Transaction::new("genesis in".to_string(), "genesis out".to_string());
@@ -45,6 +38,18 @@ impl Blockchain {
             tip_hash: hashed,
         };
         return blockchain;
+    }
+
+    pub fn get_difficulty() -> H256 {
+        let mut bytes32 = [255u8;32];
+        bytes32[0] = 0;
+        bytes32[1] = 0;
+        bytes32[4] = 6;
+        bytes32[10] = 13;
+        bytes32[23] = 7;
+        bytes32[28] = 45;
+        let difficulty: H256 = bytes32.into();
+        return difficulty;
     }
 
     /// Insert a block into blockchain

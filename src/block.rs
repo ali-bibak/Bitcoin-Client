@@ -8,6 +8,7 @@ use rand::Rng;
 use crate::crypto::hash::{H256, Hashable};
 use crate::crypto::merkle::{MerkleTree};
 use crate::transaction::{Transaction};
+use crate::blockchain::Blockchain;
 
 /// A block in the blockchain
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -78,15 +79,7 @@ pub mod test {
     use crate::crypto::hash::H256;
 
     pub fn generate_random_block(parent: &H256) -> Block {
-        let mut bytes32 = [255u8;32];
-        bytes32[0] = 0;
-        bytes32[1] = 0;
-        bytes32[4] = 6;
-        bytes32[10] = 13;
-        bytes32[23] = 7;
-        bytes32[28] = 45;
-        let difficulty: H256 = bytes32.into();
-
+        let difficulty: H256 = Blockchain::get_difficulty().into().into();
         let mut transactions: Vec<Transaction> = Vec::new();
         let transaction = Transaction::new("rand in".to_string(), "rand_out".to_string());
         transactions.push(transaction);
