@@ -40,6 +40,17 @@ impl Blockchain {
         return blockchain;
     }
 
+    pub fn find(&self, hash: &H256) -> bool {
+        return match self.ledger.get(hash) {
+            Some(_) => true,
+            None => false,
+        }
+    }
+
+    pub fn get(&self, hash: &H256) -> Block {
+        return self.ledger.get(hash).unwrap().clone();
+    }
+
     pub fn get_difficulty() -> H256 {
         let mut bytes32 = [255u8;32];
         bytes32[0] = 0;

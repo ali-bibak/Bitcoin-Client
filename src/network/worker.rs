@@ -7,6 +7,8 @@ use super::message::Message;
 use super::peer;
 use crate::network::server::Handle as ServerHandle;
 use crate::blockchain::Blockchain;
+use crate::block::Block;
+use crate::crypto::hash::H256;
 
 #[derive(Clone)]
 pub struct Context {
@@ -44,6 +46,7 @@ impl Context {
 
     fn worker_loop(&self) {
         loop {
+            let bc = Arc::clone(&self.blockchain);
             let msg = self.msg_chan.recv().unwrap();
             let (msg, peer) = msg;
             let msg: Message = bincode::deserialize(&msg).unwrap();
@@ -55,14 +58,38 @@ impl Context {
                 Message::Pong(nonce) => {
                     debug!("Pong: {}", nonce);
                 }
-                Message::NewBlockHashes(_) => {
-                    debug!("NewBlockHashes");
+                Message::NewBlockHashes(block_hashes) => {
+                    debug!("NewBlockHashes: {:?}", block_hashes);
+                    let blockchain = (*bc).lock().unwrap();
+                    let mut vec: Vec<H256> = Vec::new();
+                    for block_hash in &block_hashes {
+                        if !blockchain.find(&block_hash) {
+                            vec.push(block_hash.clone());
+                        }
+                    }
+                    debug!("* Ask for blocks: {:?}", vec);
+                    peer.write(Message::GetBlocks(vec));
                 }
-                Message::GetBlocks(_) => {
-                    debug!("GetBlocks");
+                Message::GetBlocks(block_hashes) => {
+                    debug!("GetBlocks: {:?}", block_hashes);
+                    let blockchain = (*bc).lock().unwrap();
+                    let mut vec: Vec<Block> = Vec::new();
+                    for block_hash in &block_hashes {
+                       if !blockchain.find(&block_hash) {
+                           debug!("ERROR: No such block found: {:?}", block_hash);
+                       } else {
+                           vec.push(blockchain.get(&block_hash));
+                       }
+                    }
+                    debug!("* Sending the blocks: {:?}", vec);
+                    peer.write(Message::Blocks(vec));
                 }
-                Message::Blocks(_) => {
-                    debug!("Blocks");
+                Message::Blocks(blocks) => {
+                    debug!("Blocks: {:?}", blocks);
+                    let mut blockchain = (*bc).lock().unwrap();
+                    for block in &blocks {
+                        blockchain.insert(&block);
+                    }
                 }
             }
         }

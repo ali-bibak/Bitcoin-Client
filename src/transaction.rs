@@ -64,7 +64,7 @@ pub fn sign(t: &Transaction, key: &Ed25519KeyPair) -> Signature {
     let signature = key.sign(hashed.as_ref());
     return signature;
 }
-// TODO: Change the verify function
+//TODO Change the verify function
 /// Verify digital signature of a transaction, using public key instead of secret key
 pub fn verify(t: &Transaction, public_key: &<Ed25519KeyPair as KeyPair>::PublicKey, signature: &Signature) -> bool {
     let serialized = bincode::serialize(&t).unwrap();

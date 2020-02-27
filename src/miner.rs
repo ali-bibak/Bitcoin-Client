@@ -41,7 +41,7 @@ pub fn new(
         control_chan: signal_chan_receiver,
         operating_state: OperatingState::Paused,
         server: server.clone(),
-        blockchain: Arc::clone(blockchain),
+        blockchain: Arc::clone(&blockchain),
     };
 
     let handle = Handle {

@@ -79,7 +79,7 @@ pub mod test {
     use crate::crypto::hash::H256;
 
     pub fn generate_random_block(parent: &H256) -> Block {
-        let difficulty: H256 = Blockchain::get_difficulty().into().into();
+        let difficulty: H256 = Blockchain::get_difficulty().into();
         let mut transactions: Vec<Transaction> = Vec::new();
         let transaction = Transaction::new("rand in".to_string(), "rand_out".to_string());
         transactions.push(transaction);
