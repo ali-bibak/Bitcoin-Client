@@ -2,6 +2,8 @@ use crossbeam::channel;
 use log::{debug, warn};
 use std::thread;
 use std::sync::{Arc, Mutex};
+use std::rc::Rc;
+use log::error;
 
 use super::message::Message;
 use super::peer;
@@ -9,7 +11,6 @@ use crate::network::server::Handle as ServerHandle;
 use crate::blockchain::Blockchain;
 use crate::block::Block;
 use crate::crypto::hash::H256;
-use log::error;
 
 #[derive(Clone)]
 pub struct Context {
@@ -47,7 +48,6 @@ impl Context {
 
     fn worker_loop(&self) {
         loop {
-            let bc = Arc::clone(&self.blockchain);
             let msg = self.msg_chan.recv().unwrap();
             let (msg, peer) = msg;
             let msg: Message = bincode::deserialize(&msg).unwrap();
@@ -60,6 +60,7 @@ impl Context {
                     debug!("Pong: {}", nonce);
                 }
                 Message::NewBlockHashes(block_hashes) => {
+                    let bc = Arc::clone(&self.blockchain);
                     debug!("NewBlockHashes: {:?}", block_hashes);
                     let blockchain = (*bc).lock().unwrap();
                     let mut vec: Vec<H256> = Vec::new();
@@ -72,6 +73,7 @@ impl Context {
                     peer.write(Message::GetBlocks(vec));
                 }
                 Message::GetBlocks(block_hashes) => {
+                    let bc = Arc::clone(&self.blockchain);
                     debug!("GetBlocks: {:?}", block_hashes);
                     let blockchain = (*bc).lock().unwrap();
                     let mut vec: Vec<Block> = Vec::new();
@@ -86,11 +88,14 @@ impl Context {
                     peer.write(Message::Blocks(vec));
                 }
                 Message::Blocks(blocks) => {
+                    let bc = Arc::clone(&self.blockchain);
                     debug!("Blocks: {:?}", blocks);
-                    let mut blockchain = (*bc).lock().unwrap();
+                    let mut blockchain = bc.lock().unwrap();
                     for block in &blocks {
                         blockchain.insert(&block);
                     }
+                    let x = blockchain.recv();
+                    self.blockchain = Arc::new(x);
                 }
             }
         }

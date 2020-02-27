@@ -6,6 +6,7 @@ use std::sync::{Arc, Mutex};
 use rand::Rng;
 use std::fs::File;
 use std::io::Write;
+use std::rc::Rc;
 
 use crate::network::server::Handle as ServerHandle;
 use crate::blockchain::Blockchain;
@@ -131,11 +132,11 @@ impl Context {
 
             let mut block: Block;
             let mut blockchain = (*bc).lock().unwrap();
+
             while {
                 let parent_hash = blockchain.tip();
                 let parent = blockchain.get(&parent_hash);
                 let difficulty = parent.get_difficulty();
-                info!("diffff = {:d}", difficulty);
                 let mut transactions: Vec<Transaction> = Vec::new();
                 let transaction = Transaction::new("new block input!".to_string(), "new block output!".to_string());
                 transactions.push(transaction);
