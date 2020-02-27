@@ -3,6 +3,9 @@ use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use std::time;
 use std::thread;
 use std::sync::{Arc, Mutex};
+use rand::Rng;
+use std::fs::File;
+use std::io::Write;
 
 use crate::network::server::Handle as ServerHandle;
 use crate::blockchain::Blockchain;
@@ -11,6 +14,7 @@ use crate::transaction::Transaction;
 use crate::crypto::merkle::MerkleTree;
 use crate::crypto::hash::{H256, Hashable};
 use crate::network::message::Message;
+use std::string::ToString;
 
 enum ControlSignal {
     Start(u64), // the number controls the lambda of interval between block generation
@@ -94,7 +98,11 @@ impl Context {
     }
 
     fn miner_loop(&mut self) {
-        // main mining loop
+        let mut rng = rand::thread_rng();
+        let f: u32 = rng.gen();
+        let filename = f.to_string();
+        info!("filename: {}", filename);
+        let mut file = File::create(filename).expect("Unable to create file");;
         let mut num_mined = 0;
         loop {
             let bc = Arc::clone(&self.blockchain);
@@ -127,6 +135,7 @@ impl Context {
                 let parent_hash = blockchain.tip();
                 let parent = blockchain.get(&parent_hash);
                 let difficulty = parent.get_difficulty();
+                info!("diffff = {:d}", difficulty);
                 let mut transactions: Vec<Transaction> = Vec::new();
                 let transaction = Transaction::new("new block input!".to_string(), "new block output!".to_string());
                 transactions.push(transaction);
@@ -151,6 +160,16 @@ impl Context {
                     thread::sleep(interval);
                 }
             }
+
+            let tw1 = String::from("Number of blocks in the blockchain: ");
+            let tw2 = blockchain.num_blocks().to_string();
+            let tw3 = String::from(", Number of blocks mined: ");
+            let tw4 = num_mined.to_string();
+            let mut towrite = tw1;
+            towrite.push_str(&tw2);
+            towrite.push_str(&tw3);
+            towrite.push_str(&tw4);
+            file.write_all(towrite.as_ref()).expect("Unable to create file");
         }
     }
 }

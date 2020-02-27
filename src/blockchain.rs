@@ -51,6 +51,10 @@ impl Blockchain {
         return self.ledger.get(hash).unwrap().clone();
     }
 
+    pub fn num_blocks(&self) -> usize {
+        return self.ledger.len();
+    }
+
     pub fn get_difficulty() -> H256 {
         let mut bytes32 = [255u8;32];
         bytes32[0] = 0;
